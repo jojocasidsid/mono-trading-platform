@@ -1,0 +1,84 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./apps/frontend:/app/apps/frontend
+      - ./packages/shared:/app/packages/shared
+      - /app/node_modules
+      - /app/apps/frontend/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://fusion:fusion@postgres:5432/fusion?schema=public
+    volumes:
+      - ./apps/backend:/app/apps/backend
+      - ./packages/shared:/app/packages/shared
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: fusion
+      POSTGRES_USER: fusion
+      POSTGRES_PASSWORD: fusion
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fusion -d fusion']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  prisma-studio:
+    profiles:
+      - tools
+
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+
+    command:
+      - pnpm
+      - exec
+      - prisma
+      - studio
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - '5555'
+
+    ports:
+      - '5555:5555'
+
+    environment:
+      DATABASE_URL: postgresql://fusion:fusion@postgres:5432/fusion?schema=public
+
+    volumes:
+      - ./apps/backend:/app/apps/backend
+      - ./packages/shared:/app/packages/shared
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
