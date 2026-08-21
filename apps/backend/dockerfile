@@ -2,16 +2,18 @@ FROM node:24-bookworm-slim
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
 
 RUN apt-get update \
-  && apt-get install -y openssl \
-  && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable
 
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json ./apps/frontend/package.json
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 
@@ -22,7 +24,9 @@ COPY packages/shared ./packages/shared
 
 WORKDIR /app/apps/backend
 
-RUN pnpm exec prisma generate
+ARG DATABASE_URL
+
+RUN DATABASE_URL="$DATABASE_URL" pnpm exec prisma generate
 
 EXPOSE 3000
 

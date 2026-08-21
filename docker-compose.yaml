@@ -17,10 +17,12 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL}
     ports:
       - '3000:3000'
     environment:
-      DATABASE_URL: postgresql://fusion:fusion@postgres:5432/fusion?schema=public
+      DATABASE_URL: ${DATABASE_URL}
     volumes:
       - ./apps/backend:/app/apps/backend
       - ./packages/shared:/app/packages/shared
@@ -33,9 +35,9 @@ services:
   postgres:
     image: postgres:17
     environment:
-      POSTGRES_DB: fusion
-      POSTGRES_USER: fusion
-      POSTGRES_PASSWORD: fusion
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - '5432:5432'
     volumes:
