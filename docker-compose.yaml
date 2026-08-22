@@ -19,15 +19,24 @@ services:
       dockerfile: apps/backend/Dockerfile
       args:
         DATABASE_URL: ${DATABASE_URL}
+
     ports:
       - '3000:3000'
+      - '5555:5555'
+
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+
     volumes:
       - ./apps/backend:/app/apps/backend
       - ./packages/shared:/app/packages/shared
       - /app/node_modules
       - /app/apps/backend/node_modules
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,40 +56,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  prisma-studio:
-    profiles:
-      - tools
-
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-
-    command:
-      - pnpm
-      - exec
-      - prisma
-      - studio
-      - --hostname
-      - 0.0.0.0
-      - --port
-      - '5555'
-
-    ports:
-      - '5555:5555'
-
-    environment:
-      DATABASE_URL: postgresql://fusion:fusion@postgres:5432/fusion?schema=public
-
-    volumes:
-      - ./apps/backend:/app/apps/backend
-      - ./packages/shared:/app/packages/shared
-      - /app/node_modules
-      - /app/apps/backend/node_modules
-
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
   postgres_data:

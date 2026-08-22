@@ -7,6 +7,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  TRADER
+  ADMIN
+}
+
 enum TradeSide {
   BUY
   SELL
@@ -17,25 +22,48 @@ enum TradeStatus {
   CANCELLED
 }
 
-model Trade {
-  id             String      @id @default(uuid())
-  tradeId        String      @unique @map("trade_id")
-  symbol         String
-  side           TradeSide
-  quantity       Int
-  price          Decimal     @db.Decimal(18, 4)
-  trader         String
-  book           String
-  counterparty   String
-  tradeTimestamp DateTime    @map("trade_timestamp")
-  status         TradeStatus @default(ACTIVE)
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  username      String   @unique
+  name          String
+  password_hash String
+  role          UserRole @default(TRADER)
 
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
+  trades Trade[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([email])
+  @@index([username])
+
+  @@map("users")
+}
+
+model Trade {
+  id       String    @id @default(uuid())
+  symbol   String
+  side     TradeSide
+  quantity Int
+  price    Decimal   @db.Decimal(18, 4)
+
+  trader_id String
+  trader User @relation(fields: [trader_id], references: [id])
+  book         String
+  counterparty String
+
+  trade_timestamp DateTime
+
+  status TradeStatus @default(ACTIVE)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([symbol])
-  @@index([trader])
+  @@index([trader_id])
   @@index([status])
-  @@index([tradeTimestamp])
+  @@index([trade_timestamp])
+
   @@map("trades")
 }

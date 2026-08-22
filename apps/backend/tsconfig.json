@@ -2,13 +2,28 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
+
+    "types": ["node"],
+    "lib": ["ES2022"],
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "sourceMap": true
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "prisma.config.ts", "src/load-tests/purchase.js"],
+  "exclude": ["node_modules", "dist"]
 }

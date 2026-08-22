@@ -2,7 +2,6 @@ FROM node:24-bookworm-slim
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV CI=true
 
 RUN apt-get update \
     && apt-get install -y openssl \
@@ -13,11 +12,11 @@ RUN corepack enable
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/frontend/package.json ./apps/frontend/package.json
+
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN CI=true pnpm install --frozen-lockfile
 
 COPY apps/backend ./apps/backend
 COPY packages/shared ./packages/shared
@@ -29,5 +28,6 @@ ARG DATABASE_URL
 RUN DATABASE_URL="$DATABASE_URL" pnpm exec prisma generate
 
 EXPOSE 3000
+EXPOSE 5555
 
 CMD ["pnpm", "dev"]
