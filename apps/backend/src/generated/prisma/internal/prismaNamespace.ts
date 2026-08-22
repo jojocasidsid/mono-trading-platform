@@ -398,7 +398,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
-  Trade: 'Trade'
+  Trade: 'Trade',
+  TradeHistory: 'TradeHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "trade"
+    modelProps: "user" | "trade" | "tradeHistory"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -566,6 +567,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TradeHistory: {
+      payload: Prisma.$TradeHistoryPayload<ExtArgs>
+      fields: Prisma.TradeHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TradeHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TradeHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.TradeHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TradeHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.TradeHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.TradeHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.TradeHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TradeHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.TradeHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        update: {
+          args: Prisma.TradeHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.TradeHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TradeHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TradeHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.TradeHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TradeHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.TradeHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTradeHistory>
+        }
+        groupBy: {
+          args: Prisma.TradeHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TradeHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TradeHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TradeHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -635,6 +710,16 @@ export const TradeScalarFieldEnum = {
 } as const
 
 export type TradeScalarFieldEnum = (typeof TradeScalarFieldEnum)[keyof typeof TradeScalarFieldEnum]
+
+
+export const TradeHistoryScalarFieldEnum = {
+  id: 'id',
+  trade_id: 'trade_id',
+  action: 'action',
+  created_at: 'created_at'
+} as const
+
+export type TradeHistoryScalarFieldEnum = (typeof TradeHistoryScalarFieldEnum)[keyof typeof TradeHistoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -754,6 +839,20 @@ export type EnumTradeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'TradeStatus[]'
  */
 export type ListEnumTradeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TradeStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TradeHistoryAction'
+ */
+export type EnumTradeHistoryActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TradeHistoryAction'>
+    
+
+
+/**
+ * Reference to a field of type 'TradeHistoryAction[]'
+ */
+export type ListEnumTradeHistoryActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TradeHistoryAction[]'>
     
 
 
@@ -923,6 +1022,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   trade?: Prisma.TradeOmit
+  tradeHistory?: Prisma.TradeHistoryOmit
 }
 
 /* Types for Logging */

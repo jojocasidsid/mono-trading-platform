@@ -24,6 +24,11 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "prisma.config.ts", "src/load-tests/purchase.js"],
+  "include": [
+    "src/**/*.ts",
+    "prisma.config.ts",
+    "src/load-tests/purchase.js",
+    "src/services/dashboard_services"
+  ],
   "exclude": ["node_modules", "dist"]
 }

@@ -17,6 +17,8 @@ export async function trade_routes(app: FastifyInstance): Promise<void> {
     Body: CreateTradeModel;
   }>('/', trade_controller.create);
 
+  app.get('/summary', trade_controller.summary);
+
   app.patch<{
     Params: TradeParams;
     Body: UpdateTradeModel;

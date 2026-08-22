@@ -2,7 +2,14 @@ import bcrypt from 'bcrypt';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { PrismaClient, TradeSide, TradeStatus, UserRole } from '../src/generated/prisma/client.js';
+import {
+  Prisma,
+  PrismaClient,
+  TradeHistoryAction,
+  TradeSide,
+  TradeStatus,
+  UserRole,
+} from '../src/generated/prisma/client.js';
 
 import { SEED_PASSWORD, seed_users } from './seed-data/users.js';
 
@@ -22,7 +29,7 @@ const prisma = new PrismaClient({
   adapter,
 });
 
-const TRADES_PER_USER = 50;
+const TRADES_PER_USER = 200;
 
 const books = ['EQUITIES_US', 'TECH_GROWTH', 'GLOBAL_EQUITIES', 'LARGE_CAP_US'];
 
@@ -44,8 +51,8 @@ function random_integer(min: number, max: number): number {
 }
 
 function random_trade_price(base_price: number): number {
-  // Keep generated execution price within roughly ±10%
-  // of our simulated starting market price.
+  // Keep generated execution price
+  // within roughly ±10% of market price.
   const percentage_move = (Math.random() - 0.5) * 0.2;
 
   return Number((base_price * (1 + percentage_move)).toFixed(2));
@@ -57,6 +64,20 @@ function random_timestamp(): Date {
   const market_day_start = now - 8 * 60 * 60 * 1000;
 
   return new Date(random_integer(market_day_start, now));
+}
+
+function random_trade_status(): TradeStatus {
+  const random = Math.random();
+
+  if (random < 0.85) {
+    return TradeStatus.ACTIVE;
+  }
+
+  if (random < 0.93) {
+    return TradeStatus.CANCELLED;
+  }
+
+  return TradeStatus.CLOSED;
 }
 
 async function seed_users_into_database() {
@@ -72,6 +93,7 @@ async function seed_users_into_database() {
         username: user.username,
         name: user.name,
         password_hash,
+
         role: user.role === 'ADMIN' ? UserRole.ADMIN : UserRole.TRADER,
       },
 
@@ -80,10 +102,19 @@ async function seed_users_into_database() {
         username: user.username,
         name: user.name,
         password_hash,
+
         role: user.role === 'ADMIN' ? UserRole.ADMIN : UserRole.TRADER,
       },
     });
   }
+}
+
+async function clear_trade_data() {
+  await prisma.$transaction(async transaction => {
+    await transaction.tradeHistory.deleteMany();
+
+    await transaction.trade.deleteMany();
+  });
 }
 
 async function seed_trades() {
@@ -97,14 +128,15 @@ async function seed_trades() {
     throw new Error('No trader users available.');
   }
 
-  // Make the development seed repeatable.
-  await prisma.trade.deleteMany();
+  await clear_trade_data();
 
-  const trades = [];
+  const trades: Prisma.TradeCreateManyInput[] = [];
 
   for (const user of users) {
     for (let i = 0; i < TRADES_PER_USER; i++) {
       const stock = random_item(nyse_100_stocks);
+
+      const status = random_trade_status();
 
       trades.push({
         symbol: stock.symbol,
@@ -123,16 +155,54 @@ async function seed_trades() {
 
         trade_timestamp: random_timestamp(),
 
-        status: Math.random() < 0.95 ? TradeStatus.ACTIVE : TradeStatus.CANCELLED,
+        status,
       });
     }
   }
 
-  await prisma.trade.createMany({
-    data: trades,
+  const created_trades = await prisma.$transaction(async transaction => {
+    const result = [];
+
+    for (const trade of trades) {
+      const created_trade = await transaction.trade.create({
+        data: trade,
+      });
+
+      await transaction.tradeHistory.create({
+        data: {
+          trade_id: created_trade.id,
+
+          action: TradeHistoryAction.CREATED,
+        },
+      });
+
+      if (trade.status === TradeStatus.CANCELLED) {
+        await transaction.tradeHistory.create({
+          data: {
+            trade_id: created_trade.id,
+
+            action: TradeHistoryAction.CANCELLED,
+          },
+        });
+      }
+
+      if (trade.status === TradeStatus.CLOSED) {
+        await transaction.tradeHistory.create({
+          data: {
+            trade_id: created_trade.id,
+
+            action: TradeHistoryAction.CLOSED,
+          },
+        });
+      }
+
+      result.push(created_trade);
+    }
+
+    return result;
   });
 
-  console.log(`Seeded ${trades.length} trades for ${users.length} traders.`);
+  console.log(`Seeded ${created_trades.length} trades for ${users.length} traders.`);
 }
 
 async function main() {

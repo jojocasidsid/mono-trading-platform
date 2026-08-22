@@ -27,3 +27,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type Trade = Prisma.TradeModel
+/**
+ * Model TradeHistory
+ * 
+ */
+export type TradeHistory = Prisma.TradeHistoryModel

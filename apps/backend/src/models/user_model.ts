@@ -1,5 +1,3 @@
-import prisma from '../lib/prisma.js';
-
 import type { UserRole } from '../generated/prisma/enums.js';
 
 export interface CreateUserModel {
@@ -24,7 +22,3 @@ export interface UpdateUserModel {
   password_hash?: string;
   role?: UserRole;
 }
-
-const User = prisma.user;
-
-export default User;

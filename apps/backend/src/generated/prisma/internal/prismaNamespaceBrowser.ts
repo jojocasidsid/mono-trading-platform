@@ -52,7 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
-  Trade: 'Trade'
+  Trade: 'Trade',
+  TradeHistory: 'TradeHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -101,6 +102,16 @@ export const TradeScalarFieldEnum = {
 } as const
 
 export type TradeScalarFieldEnum = (typeof TradeScalarFieldEnum)[keyof typeof TradeScalarFieldEnum]
+
+
+export const TradeHistoryScalarFieldEnum = {
+  id: 'id',
+  trade_id: 'trade_id',
+  action: 'action',
+  created_at: 'created_at'
+} as const
+
+export type TradeHistoryScalarFieldEnum = (typeof TradeHistoryScalarFieldEnum)[keyof typeof TradeHistoryScalarFieldEnum]
 
 
 export const SortOrder = {

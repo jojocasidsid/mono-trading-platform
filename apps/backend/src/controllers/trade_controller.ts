@@ -15,6 +15,7 @@ import UpdateTradeService from '../services/trade_services/update_trade_service.
 import CancelTradeService from '../services/trade_services/cancel_trade_service.js';
 
 import type { ListTradesModel } from '../models/trade_model.js';
+import GetDashboardService from '../services/trade_services/get_dashboard_service.js';
 
 export interface TradeParams {
   id: string;
@@ -89,6 +90,18 @@ export class TradeController extends ApplicationController {
 
     return reply.send({
       data: trade,
+    });
+  };
+
+  summary = async (request: FastifyRequest, reply: FastifyReply) => {
+    const trader_id = this.get_trader_id(request);
+
+    const service = new GetDashboardService();
+
+    const summary = await service.execute(trader_id);
+
+    return reply.send({
+      data: summary,
     });
   };
 }

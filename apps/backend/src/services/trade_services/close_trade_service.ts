@@ -3,16 +3,21 @@ import { Prisma } from '../../generated/prisma/client.js';
 import type { TradeModel } from '../../generated/prisma/models.js';
 
 import TradeRepository from '../../repositories/trade_repository.js';
+
 import TradeHistoryRepository from '../../repositories/trade_history_repository.js';
+
 import UserRepository from '../../repositories/user_repository.js';
 
 import { BadRequestError } from '../../shared/errors/bad_request_error.js';
-import { ConflictError } from '../../shared/errors/conflict_error.js';
-import { NotFoundError } from '../../shared/errors/not_found_error.js';
-import prisma from '../../lib/prisma.js';
-import { publish_trade_cancelled } from '../../publishers/trade_publisher.js';
 
-export default class CancelTradeService {
+import { ConflictError } from '../../shared/errors/conflict_error.js';
+
+import { NotFoundError } from '../../shared/errors/not_found_error.js';
+
+import prisma from '../../lib/prisma.js';
+import { publish_trade_closed } from '../../publishers/trade_publisher.js';
+
+export default class CloseTradeService {
   constructor(
     private readonly trade_repository = new TradeRepository(),
     private readonly user_repository = new UserRepository()
@@ -42,8 +47,8 @@ export default class CancelTradeService {
     if (trade.status === 'CANCELLED') {
       throw new ConflictError([
         {
-          code: 'TRADE_ALREADY_CANCELLED',
-          message: 'Trade is already cancelled.',
+          code: 'TRADE_CANCELLED',
+          message: 'Cancelled trades cannot be closed.',
         },
       ]);
     }
@@ -52,7 +57,7 @@ export default class CancelTradeService {
       throw new ConflictError([
         {
           code: 'TRADE_ALREADY_CLOSED',
-          message: 'Closed trades cannot be cancelled.',
+          message: 'Trade is already closed.',
         },
       ]);
     }
@@ -85,17 +90,17 @@ export default class CancelTradeService {
 
         const transaction_trade_history_repository = new TradeHistoryRepository(transaction);
 
-        const cancelled_trade = await transaction_trade_repository.cancel(id, trader_id);
+        const closed_trade = await transaction_trade_repository.close(id, trader_id);
 
         await transaction_trade_history_repository.create({
-          trade_id: cancelled_trade.id,
-          action: 'CANCELLED',
+          trade_id: closed_trade.id,
+          action: 'CLOSED',
         });
 
-        return cancelled_trade;
+        return closed_trade;
       });
 
-      publish_trade_cancelled(trade);
+      publish_trade_closed(trade);
 
       return trade;
     } catch (error) {
@@ -103,7 +108,7 @@ export default class CancelTradeService {
         throw new ConflictError([
           {
             code: 'TRADE_NOT_ACTIVE',
-            message: 'Trade can no longer be cancelled.',
+            message: 'Trade can no longer be closed.',
           },
         ]);
       }

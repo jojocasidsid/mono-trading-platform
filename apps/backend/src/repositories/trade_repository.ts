@@ -2,11 +2,11 @@ import type { TradeModel } from '../generated/prisma/models.js';
 
 import type { TradeSide, TradeStatus } from '../generated/prisma/enums.js';
 
-import Trade, {
-  type CreateTradeModel,
-  type TradeSortField,
-  type SortOrder,
-  type UpdateTradeModel,
+import type {
+  CreateTradeModel,
+  UpdateTradeModel,
+  TradeSortField,
+  SortOrder,
 } from '../models/trade_model.js';
 
 import { ApplicationRepository } from './application_repository.js';
@@ -38,16 +38,49 @@ export interface CountTradesRepositoryInput {
 }
 
 export default class TradeRepository extends ApplicationRepository {
+  private readonly Trade = this.db.trade;
+
   async find_by_id(id: string): Promise<TradeModel | null> {
-    return Trade.findUnique({
+    return this.Trade.findUnique({
       where: {
         id,
       },
     });
   }
 
+  async list_all_by_status(trader_id: string, status: TradeStatus): Promise<TradeModel[]> {
+    return this.Trade.findMany({
+      where: {
+        trader_id,
+        status,
+      },
+
+      orderBy: {
+        trade_timestamp: 'desc',
+      },
+    });
+  }
+
+  async count_by_status(trader_id: string, status: TradeStatus): Promise<number> {
+    return this.Trade.count({
+      where: {
+        trader_id,
+        status,
+      },
+    });
+  }
+
+  async find_by_id_and_trader_id(id: string, trader_id: string): Promise<TradeModel | null> {
+    return this.Trade.findUnique({
+      where: {
+        id,
+        trader_id,
+      },
+    });
+  }
+
   async list(input: ListTradesRepositoryInput): Promise<TradeModel[]> {
-    return Trade.findMany({
+    return this.Trade.findMany({
       where: this.build_where(input),
 
       skip: input.skip,
@@ -60,13 +93,13 @@ export default class TradeRepository extends ApplicationRepository {
   }
 
   async count(input: CountTradesRepositoryInput): Promise<number> {
-    return Trade.count({
+    return this.Trade.count({
       where: this.build_where(input),
     });
   }
 
   async create(input: CreateTradeModel): Promise<TradeModel> {
-    return Trade.create({
+    return this.Trade.create({
       data: {
         symbol: input.symbol,
         side: input.side,
@@ -81,10 +114,11 @@ export default class TradeRepository extends ApplicationRepository {
   }
 
   async update(id: string, trader_id: string, input: UpdateTradeModel): Promise<TradeModel> {
-    return Trade.update({
+    return this.Trade.update({
       where: {
         id,
         trader_id,
+        status: 'ACTIVE',
       },
 
       data: {
@@ -104,10 +138,6 @@ export default class TradeRepository extends ApplicationRepository {
           price: input.price,
         }),
 
-        ...(input.trader_id !== undefined && {
-          trader_id: input.trader_id,
-        }),
-
         ...(input.book !== undefined && {
           book: input.book,
         }),
@@ -124,14 +154,29 @@ export default class TradeRepository extends ApplicationRepository {
   }
 
   async cancel(id: string, trader_id: string): Promise<TradeModel> {
-    return Trade.update({
+    return this.Trade.update({
       where: {
         id,
         trader_id,
+        status: 'ACTIVE',
       },
 
       data: {
         status: 'CANCELLED',
+      },
+    });
+  }
+
+  async close(id: string, trader_id: string): Promise<TradeModel> {
+    return this.Trade.update({
+      where: {
+        id,
+        trader_id,
+        status: 'ACTIVE',
+      },
+
+      data: {
+        status: 'CLOSED',
       },
     });
   }
@@ -142,7 +187,7 @@ export default class TradeRepository extends ApplicationRepository {
 
       ...(input.symbol && {
         symbol: {
-          contains: input.symbol.toUpperCase(),
+          contains: input.symbol,
           mode: 'insensitive' as const,
         },
       }),

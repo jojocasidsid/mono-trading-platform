@@ -1,5 +1,3 @@
-import prisma from '../lib/prisma.js';
-
 import type { TradeSide, TradeStatus } from '../generated/prisma/enums.js';
 
 export interface CreateTradeModel {
@@ -18,10 +16,15 @@ export interface UpdateTradeModel {
   side?: TradeSide;
   quantity?: number;
   price?: number;
-  trader_id?: string;
   book?: string;
   counterparty?: string;
   trade_timestamp?: Date;
+}
+
+export interface CloseTradeModel {
+  trade_id: string;
+  trader_id: string;
+  closing_trade: CreateTradeModel;
 }
 
 export type TradeSortField =
@@ -49,7 +52,3 @@ export interface ListTradesModel {
   sort_by?: TradeSortField;
   sort_order?: SortOrder;
 }
-
-const Trade = prisma.trade;
-
-export default Trade;

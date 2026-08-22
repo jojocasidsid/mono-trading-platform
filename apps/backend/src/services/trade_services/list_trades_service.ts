@@ -1,7 +1,5 @@
 import type { TradeModel } from '../../generated/prisma/models.js';
-
 import type { ListTradesModel, TradeSortField, SortOrder } from '../../models/trade_model.js';
-
 import TradeRepository from '../../repositories/trade_repository.js';
 
 export interface ListTradesResult {

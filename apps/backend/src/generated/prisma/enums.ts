@@ -27,7 +27,18 @@ export type TradeSide = (typeof TradeSide)[keyof typeof TradeSide]
 
 export const TradeStatus = {
   ACTIVE: 'ACTIVE',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  CLOSED: 'CLOSED'
 } as const
 
 export type TradeStatus = (typeof TradeStatus)[keyof typeof TradeStatus]
+
+
+export const TradeHistoryAction = {
+  CREATED: 'CREATED',
+  UPDATED: 'UPDATED',
+  CANCELLED: 'CANCELLED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type TradeHistoryAction = (typeof TradeHistoryAction)[keyof typeof TradeHistoryAction]

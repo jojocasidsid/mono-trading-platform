@@ -177,6 +177,23 @@ export type EnumTradeStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumTradeStatusFilter<$PrismaModel>
 }
 
+export type EnumTradeHistoryActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.TradeHistoryAction | Prisma.EnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  in?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel> | $Enums.TradeHistoryAction
+}
+
+export type EnumTradeHistoryActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TradeHistoryAction | Prisma.EnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  in?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTradeHistoryActionWithAggregatesFilter<$PrismaModel> | $Enums.TradeHistoryAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -347,6 +364,23 @@ export type NestedEnumTradeStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumTradeStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumTradeStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTradeHistoryActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.TradeHistoryAction | Prisma.EnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  in?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel> | $Enums.TradeHistoryAction
+}
+
+export type NestedEnumTradeHistoryActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TradeHistoryAction | Prisma.EnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  in?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TradeHistoryAction[] | Prisma.ListEnumTradeHistoryActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTradeHistoryActionWithAggregatesFilter<$PrismaModel> | $Enums.TradeHistoryAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTradeHistoryActionFilter<$PrismaModel>
 }
 
 

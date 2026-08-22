@@ -20,6 +20,14 @@ enum TradeSide {
 enum TradeStatus {
   ACTIVE
   CANCELLED
+  CLOSED
+}
+
+enum TradeHistoryAction {
+  CREATED
+  UPDATED
+  CANCELLED
+  CLOSED
 }
 
 model User {
@@ -49,13 +57,15 @@ model Trade {
   price    Decimal   @db.Decimal(18, 4)
 
   trader_id String
-  trader User @relation(fields: [trader_id], references: [id])
-  book         String
-  counterparty String
+  trader    User @relation(fields: [trader_id], references: [id])
 
+  book            String
+  counterparty    String
   trade_timestamp DateTime
 
   status TradeStatus @default(ACTIVE)
+
+  histories TradeHistory[]
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -66,4 +76,21 @@ model Trade {
   @@index([trade_timestamp])
 
   @@map("trades")
+}
+
+model TradeHistory {
+  id String @id @default(uuid())
+
+  trade_id String
+  trade    Trade @relation(fields: [trade_id], references: [id])
+
+  action TradeHistoryAction
+
+  created_at DateTime @default(now())
+
+  @@index([trade_id])
+  @@index([action])
+  @@index([created_at])
+
+  @@map("trade_histories")
 }
