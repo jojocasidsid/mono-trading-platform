@@ -3,17 +3,33 @@
 import { z } from 'zod';
 
 export const create_trade_schema = z.object({
-  symbol: z.string().min(1).max(10),
+  symbol: z
+    .string()
+    .trim()
+    .min(1, 'Symbol is required.')
+    .max(10, 'Symbol must not exceed 10 characters.')
+    .transform(value => value.toUpperCase()),
 
   side: z.enum(['BUY', 'SELL']),
 
-  quantity: z.number().int().positive(),
+  quantity: z
+    .number()
+    .int('Quantity must be a whole number.')
+    .positive('Quantity must be greater than zero.'),
 
-  price: z.number().positive(),
+  price: z.number().positive('Price must be greater than zero.'),
 
-  book: z.string().min(1),
+  book: z
+    .string()
+    .trim()
+    .min(1, 'Book is required.')
+    .max(100, 'Book must not exceed 100 characters.'),
 
-  counterparty: z.string().min(1),
+  counterparty: z
+    .string()
+    .trim()
+    .min(1, 'Counterparty is required.')
+    .max(100, 'Counterparty must not exceed 100 characters.'),
 });
 
 export const update_trade_schema = z
@@ -56,6 +72,6 @@ export const update_trade_schema = z
     message: 'At least one field must be provided.',
   });
 
-export type UpdateTradeRequest = z.infer<typeof update_trade_schema>;
-
 export type CreateTradeRequest = z.infer<typeof create_trade_schema>;
+
+export type UpdateTradeRequest = z.infer<typeof update_trade_schema>;

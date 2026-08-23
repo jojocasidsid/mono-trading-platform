@@ -62,7 +62,7 @@ export function start_market_price_provider(): void {
     return;
   }
 
-  simulator = setInterval(update_market_prices, 5_000);
+  simulator = setInterval(update_market_prices, 1_000);
 }
 
 export function stop_market_price_provider(): void {
