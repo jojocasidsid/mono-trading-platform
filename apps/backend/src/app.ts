@@ -7,6 +7,8 @@ import { stock_routes } from './routes/stock_routes.js';
 import { trade_history_routes } from './routes/trade_history_routes.js';
 import register_jwt from './shared/auth/jwt.js';
 import ErrorHandler from './shared/errors/error_handler.js';
+import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 
 export async function build_app() {
   const app = Fastify({
@@ -14,6 +16,16 @@ export async function build_app() {
   });
 
   await app.register(websocket);
+
+  await app.register(cors, {
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+
+    credentials: true,
+
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
+
+  await app.register(cookie);
 
   await register_jwt(app);
 

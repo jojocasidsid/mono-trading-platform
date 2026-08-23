@@ -1,980 +1,796 @@
-````md
-# Fusion TradeTicker
+# TradeTicker
 
-A full-stack trading platform demo built with:
+TradeTicker is a full-stack trading application for creating, managing, and monitoring trades with real-time market price updates and P&L calculations.
 
-- React + Vite
+The application provides trade management, trade history, aggregate P&L views, authentication, and real-time updates using WebSockets.
+
+## Tech Stack
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- TanStack React Query
+- React Router
+- AG Grid
+- Tailwind CSS
+- shadcn/ui
+- Native WebSocket API
+
+### Backend
+
+- Node.js
+- TypeScript
 - Fastify
 - Prisma
 - PostgreSQL
-- WebSockets
-- React Query
-- AG Grid
-- shadcn/ui
-- Tailwind CSS
-- Docker Compose
-- pnpm workspaces
+- Native WebSockets
+- JWT authentication
+- Vitest
 
----
+### Project Structure
 
-# Prerequisites
-
-Install the following:
-
-- Docker Desktop or OrbStack
-- Docker Compose
-- Git
-- Node.js 24+
-- pnpm 11+
-
-Check your installed versions:
-
-```bash
-node --version
-pnpm --version
-docker --version
-docker compose version
-```
-````
-
-If pnpm is not installed:
-
-```bash
-corepack enable
-```
-
-or:
-
-```bash
-npm install -g pnpm
-```
-
----
-
-# Install Dependencies
-
-This project uses a pnpm monorepo.
-
-Install all dependencies from the project root:
-
-```bash
-pnpm install
-```
-
-The workspace contains:
+The application is organized as a pnpm monorepo:
 
 ```text
-apps/frontend
-apps/backend
-packages/shared
+.
+├── apps/
+│   ├── backend/
+│   └── frontend/
+├── packages/
+│   └── shared/
+├── docker-compose.yml
+├── package.json
+└── pnpm-workspace.yaml
 ```
+
+`apps/frontend` contains the React application.
+
+`apps/backend` contains the Fastify API, business logic, persistence layer, authentication, and WebSocket implementation.
+
+`packages/shared` contains types and validation schemas shared between the frontend and backend.
 
 ---
 
-# Start the Application
+# Architecture
 
-Build and start all services:
-
-```bash
-docker compose up --build
-```
-
-For subsequent runs:
-
-```bash
-docker compose up
-```
-
-Run in detached mode:
-
-```bash
-docker compose up -d
-```
-
-This starts:
-
-| Service       | URL                                                          |
-| ------------- | ------------------------------------------------------------ |
-| Frontend      | [http://localhost:5173](http://localhost:5173)               |
-| Backend API   | [http://localhost:3000](http://localhost:3000)               |
-| Health Check  | [http://localhost:3000/health](http://localhost:3000/health) |
-| WebSocket     | ws://localhost:3000/ws                                       |
-| PostgreSQL    | localhost:5432                                               |
-| Prisma Studio | [http://localhost:5555](http://localhost:5555)               |
-
----
-
-# Infrastructure
-
-The following services are started through Docker Compose:
-
-- PostgreSQL
-- Backend
-- Frontend
-
-WebSockets run inside the Fastify backend and do not require a separate Docker service.
-
-Simulated stock prices are currently stored in backend memory and updated every 5 seconds.
-
----
-
-# Running Prisma Migrations
-
-The Prisma schema is located at:
+## High-Level Architecture
 
 ```text
-apps/backend/prisma/schema.prisma
+                    ┌──────────────────┐
+                    │      React       │
+                    │                  │
+                    │ React Query      │
+                    │ AG Grid          │
+                    └────────┬─────────┘
+                             │
+                    HTTP     │     WebSocket
+                             │
+                    ┌────────▼─────────┐
+                    │     Fastify      │
+                    │                  │
+                    │ Routes           │
+                    │ Controllers      │
+                    │ Services         │
+                    │ Repositories     │
+                    └───────┬──────────┘
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+       ┌──────▼───────┐           ┌──────▼───────┐
+       │  PostgreSQL  │           │ Market Price │
+       │   + Prisma   │           │   Provider   │
+       └──────────────┘           └──────────────┘
 ```
 
-Whenever you modify the Prisma schema, create a migration.
+The backend uses a layered structure:
 
-Example:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate dev --name add_trade_history
+```text
+Route
+  ↓
+Controller
+  ↓
+Service
+  ↓
+Repository
+  ↓
+Prisma
+  ↓
+PostgreSQL
 ```
 
-For the initial migration:
+Controllers are responsible for handling HTTP requests and responses.
 
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate dev --name initial_schema
-```
+Services contain application and business logic.
 
-To apply existing migrations in development:
+Repositories isolate persistence and Prisma operations from the service layer.
 
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate dev
-```
-
-For unapplied migrations in a deployment environment:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate deploy
-```
+This separation keeps business logic independently testable and prevents controllers from becoming tightly coupled to database implementation details.
 
 ---
 
-# Regenerate Prisma Client
+# Architecture Decisions
 
-Prisma normally regenerates the client automatically after migrations.
+## PostgreSQL as the Source of Truth
 
-If needed, run:
+Persistent trade state is stored in PostgreSQL.
 
-```bash
-docker compose exec backend \
-  pnpm exec prisma generate
-```
+WebSockets are used to notify connected clients about changes but are not treated as an alternative source of truth.
 
-Generated Prisma files are located at:
-
-```text
-apps/backend/src/generated/prisma
-```
+This means clients can reconnect or reload the application and reconstruct the current state from the API.
 
 ---
 
-# Seed the Database
+## React Query for Server State
 
-The Prisma seed is configured in:
+TanStack React Query is used as the primary server-state management layer on the frontend.
 
-```text
-apps/backend/prisma.config.ts
-```
+HTTP responses populate the React Query cache, while WebSocket events either invalidate or directly update that same cache.
 
-The seed command should be configured as:
+Two different strategies are intentionally used.
 
-```ts
-migrations: {
-  path: 'prisma/migrations',
-  seed: 'tsx prisma/seed.ts',
-},
-```
+### Trade Events
 
-Run the database seeder:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma db seed
-```
-
-The seeder creates:
-
-- Development users
-- Trader accounts
-- Trades
-- Trade history
-- ACTIVE trades
-- CANCELLED trades
-- CLOSED trades
-- Randomized execution prices
-
-Development login credentials are printed after the seed completes.
-
-Stock seed data is located at:
-
-```text
-apps/backend/prisma/seed-data/stocks.ts
-```
-
-User seed data is located at:
-
-```text
-apps/backend/prisma/seed-data/users.ts
-```
-
----
-
-# Open Prisma Studio
-
-Prisma Studio is not started automatically.
-
-Run:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma studio --port 5555 --browser none
-```
-
-Open:
-
-```text
-http://localhost:5555
-```
-
----
-
-# Reset the Database
-
-This drops the development database, reapplies migrations, and runs the configured seed.
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate reset
-```
-
-Prisma will ask for confirmation.
-
-To skip confirmation:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate reset --force
-```
-
----
-
-# Manually Clear Development Data
-
-Because trade history references trades, and trades reference users, deletion order matters.
-
-You can clear the main tables with:
-
-```sql
-TRUNCATE TABLE
-  trade_histories,
-  trades,
-  users
-CASCADE;
-```
-
-Then reseed:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma db seed
-```
-
-Only use destructive commands against your local development database.
-
----
-
-# Check Migration Status
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate status
-```
-
----
-
-# Backend Logs
-
-```bash
-docker compose logs -f backend
-```
-
----
-
-# Frontend Logs
-
-```bash
-docker compose logs -f frontend
-```
-
----
-
-# Restart a Single Service
-
-Backend:
-
-```bash
-docker compose restart backend
-```
-
-Frontend:
-
-```bash
-docker compose restart frontend
-```
-
-PostgreSQL:
-
-```bash
-docker compose restart postgres
-```
-
----
-
-# Stop Everything
-
-```bash
-docker compose down
-```
-
----
-
-# Stop Everything and Remove Volumes
-
-This removes PostgreSQL development data.
-
-```bash
-docker compose down -v
-```
-
-You will need to rerun migrations and the seeder afterwards.
-
----
-
-# Rebuild Images
-
-Backend:
-
-```bash
-docker compose build backend
-```
-
-Frontend:
-
-```bash
-docker compose build frontend
-```
-
-Everything:
-
-```bash
-docker compose build
-```
-
-Build and immediately start:
-
-```bash
-docker compose up --build
-```
-
----
-
-# Backend Shell
-
-Open a shell inside the backend container:
-
-```bash
-docker compose exec backend sh
-```
-
----
-
-# Frontend Shell
-
-```bash
-docker compose exec frontend sh
-```
-
----
-
-# PostgreSQL Shell
-
-```bash
-docker compose exec postgres \
-  psql \
-  -U fusion \
-  -d fusion
-```
-
-Useful PostgreSQL command:
-
-```sql
-\dt
-```
-
-This lists the database tables.
-
-Exit PostgreSQL:
-
-```text
-\q
-```
-
----
-
-# Health Check
-
-Verify that the backend is running:
-
-```bash
-curl http://localhost:3000/health
-```
-
-Expected response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
----
-
-# Authentication
-
-The backend supports:
-
-```text
-POST /api/auth/signup
-POST /api/auth/login
-POST /api/auth/refresh
-GET  /api/auth/me
-```
-
-Protected requests require:
-
-```http
-Authorization: Bearer <access_token>
-```
-
-The authenticated trader ID is read from the JWT and is not accepted from the request body.
-
----
-
-# Trade Endpoints
-
-List trades:
-
-```text
-GET /api/trades
-```
-
-Supported parameters:
-
-```text
-page
-per_page
-symbol
-side
-status
-book
-counterparty
-sort_by
-sort_order
-```
-
-Example:
-
-```text
-GET /api/trades?page=1&per_page=20&symbol=AAPL&status=ACTIVE&sort_by=trade_timestamp&sort_order=desc
-```
-
-Trade summary:
-
-```text
-GET /api/trades/summary
-```
-
-Create trade:
-
-```text
-POST /api/trades
-```
-
-Update trade:
-
-```text
-PATCH /api/trades/:id
-```
-
-Cancel trade:
-
-```text
-POST /api/trades/:id/cancel
-```
-
-Close trade:
-
-```text
-POST /api/trades/:id/close
-```
-
----
-
-# Trade History
-
-List the authenticated trader's trade history:
-
-```text
-GET /api/trade-history
-```
-
-Pagination:
-
-```text
-GET /api/trade-history?page=1&per_page=20
-```
-
-Trade-history actions include:
-
-```text
-CREATED
-UPDATED
-CANCELLED
-CLOSED
-```
-
----
-
-# Stocks
-
-List available stocks:
-
-```text
-GET /api/stocks
-```
-
-This endpoint is used by the create-trade form.
-
-Example response:
-
-```json
-{
-  "data": [
-    {
-      "symbol": "AAPL",
-      "name": "Apple Inc."
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation"
-    }
-  ]
-}
-```
-
----
-
-# Stock Prices
-
-Get the current simulated stock prices:
-
-```text
-GET /api/stocks/prices
-```
-
-Example:
-
-```json
-{
-  "data": [
-    {
-      "symbol": "AAPL",
-      "name": "Apple Inc.",
-      "price": 225.42
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation",
-      "price": 180.88
-    }
-  ]
-}
-```
-
-Stock prices are initialized from:
-
-```text
-apps/backend/prisma/seed-data/stocks.ts
-```
-
-The backend simulates price changes approximately every 5 seconds.
-
----
-
-# WebSocket
-
-The WebSocket server runs through the same Fastify backend.
-
-```text
-ws://localhost:3000/ws
-```
-
-Supported events:
+Events such as:
 
 ```text
 TRADE_CREATED
 TRADE_UPDATED
 TRADE_CANCELLED
 TRADE_CLOSED
-MARKET_PRICE_UPDATED
 ```
 
-Example stock-price event:
+invalidate affected trade queries.
+
+A trade mutation can affect multiple pieces of information including:
+
+- Trade lists
+- Trade history
+- Dashboard counts
+- Aggregate P&L
+
+Invalidation allows the backend to remain authoritative for these operations.
+
+### Market Price Events
+
+High-frequency market updates are handled differently.
+
+Events such as:
+
+```text
+MARKET_PRICE_UPDATED
+MARKET_PRICE_SUMMARY_UPDATED
+```
+
+update the relevant React Query cache directly.
+
+Performing another HTTP request for every market-price movement would create unnecessary network traffic because the WebSocket message already contains the updated information.
+
+---
+
+## Native WebSockets
+
+Native WebSockets are used rather than Socket.IO.
+
+The real-time requirements of this application are relatively straightforward:
+
+- Publish market-price changes
+- Publish trade lifecycle changes
+- Publish trader-specific calculated values
+
+The additional abstraction and protocol features provided by Socket.IO were not necessary for the current requirements.
+
+The backend supports both global and trader-specific broadcasting.
+
+Global market-price updates can be sent to all connected clients, while account-specific information such as P&L is restricted to the appropriate trader.
+
+---
+
+## Market Price Simulation
+
+The application uses an internal market-price provider rather than integrating with a live financial market-data provider.
+
+The provider simulates changing stock prices and publishes updates through WebSockets.
+
+A market update contains information such as:
 
 ```json
 {
   "event": "MARKET_PRICE_UPDATED",
   "data": {
     "symbol": "AAPL",
-    "price": 225.72,
-    "previous_price": 225.42,
-    "updated_at": "2026-08-23T03:00:00.000Z"
+    "price": 211.25,
+    "previous_price": 210.95,
+    "updated_at": "2026-08-23T16:17:18.386Z"
   }
 }
 ```
 
-Trade events are scoped to the authenticated trader.
-
-Stock-price events are broadcast to authenticated connected clients.
+This allows the application to demonstrate real-time behavior without depending on an external market-data API.
 
 ---
 
-# Frontend Dependencies
+## P&L Calculation
 
-The frontend uses:
+Unrealized P&L is calculated using the execution price and current simulated market price.
 
-- React
-- React Router
-- TanStack React Query
-- Axios
-- AG Grid
-- React Hook Form
-- Zod
-- shadcn/ui
-- Tailwind CSS
-- Lucide Icons
-- Native WebSocket API
-
-# shadcn/ui
-
-Run shadcn commands from:
-
-```bash
-cd apps/frontend
-```
-
-Initialize shadcn:
-
-```bash
-pnpm dlx shadcn@latest init
-```
-
-Recommended configuration:
+For a BUY trade:
 
 ```text
-Component Library: Base UI
-Preset: Nova
-Base Color: Neutral
-Icon Library: Lucide
+(market_price - execution_price) × quantity
 ```
 
-Install commonly used components:
+For a SELL trade:
 
-```bash
-pnpm dlx shadcn@latest add \
-  button \
-  input \
-  label \
-  card \
-  badge \
-  dialog \
-  alert-dialog \
-  sheet \
-  select \
-  dropdown-menu \
-  skeleton \
-  separator \
-  tooltip \
-  sonner
+```text
+(execution_price - market_price) × quantity
 ```
 
-Return to the repository root:
+For example:
 
-```bash
-cd ../..
+```text
+BUY 10 AAPL @ $100
+
+Current market price: $110
+
+P&L:
+($110 - $100) × 10
+= +$100
 ```
+
+For a SELL trade:
+
+```text
+SELL 10 AAPL @ $100
+
+Current market price: $90
+
+P&L:
+($100 - $90) × 10
+= +$100
+```
+
+Only active positions contribute to unrealized P&L.
 
 ---
 
-# Useful Commands
+## Aggregate P&L by Symbol
 
-Install:
+The application also provides an aggregate P&L view grouped by stock symbol.
 
-```bash
-pnpm install
+The aggregate includes:
+
+- Symbol
+- Current market price
+- Net quantity
+- Active trade count
+- Total market value
+- Total unrealized P&L
+
+Net quantity is calculated as:
+
+```text
+BUY quantity - SELL quantity
 ```
 
-Start:
+Therefore, a negative net quantity is valid and represents a net short position.
 
-```bash
-docker compose up
+For example:
+
+```text
+BUY  5 TSLA
+SELL 10 TSLA
+
+Net Quantity = 5 - 10
+             = -5
 ```
 
-Build and start:
-
-```bash
-docker compose up --build
-```
-
-PostgreSQL shell:
-
-```bash
-docker compose exec postgres \
-  psql -U fusion -d fusion
-```
-
-Migration:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate dev
-```
-
-Generate Prisma:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma generate
-```
-
-Seed:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma db seed
-```
-
-Migration status:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma migrate status
-```
-
-Prisma Studio:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma studio --port 5555 --browser none
-```
-
-Restart backend:
-
-```bash
-docker compose restart backend
-```
-
-Restart frontend:
-
-```bash
-docker compose restart frontend
-```
-
-Stop:
-
-```bash
-docker compose down
-```
-
-Remove local database volume:
-
-```bash
-docker compose down -v
-```
+P&L is still calculated for each underlying trade according to its BUY or SELL direction before being aggregated.
 
 ---
 
-# First-Time Setup
+## Authentication
 
-For a fresh clone:
+Authentication uses JWT access and refresh tokens stored in HttpOnly cookies.
+
+The frontend does not directly read or store authentication tokens.
+
+The flow is:
+
+```text
+Login
+  ↓
+Backend validates credentials
+  ↓
+Access + Refresh cookies
+  ↓
+Authenticated requests
+  ↓
+Access token expires
+  ↓
+Refresh endpoint
+  ↓
+New access token
+```
+
+Using HttpOnly cookies reduces exposure of authentication tokens to frontend JavaScript.
+
+Logout is handled by the backend, which clears the authentication cookies.
+
+---
+
+# Features
+
+The application currently supports:
+
+- User authentication
+- Access and refresh token handling
+- Logout
+- Protected routes
+- Trade creation
+- Trade editing
+- Trade cancellation
+- Trade closing
+- Trade filtering
+- Trade sorting
+- Trade pagination
+- Trade history
+- Simulated stock prices
+- Real-time market-price updates
+- Unrealized P&L
+- Aggregate P&L by symbol
+- Dashboard trade summary
+- Real-time P&L updates
+- Responsive desktop/mobile navigation
+- Visual trade status indicators
+- Subtle price movement feedback
+
+Live financial values provide visual feedback when they change:
+
+- Green for an increase
+- Red for a decrease
+
+---
+
+# Installation
+
+## Prerequisites
+
+The following are required:
+
+- Node.js
+- pnpm
+- Docker
+- Docker Compose
+
+The project uses pnpm workspaces, so pnpm should be installed before setting up the application.
+
+Install pnpm if required:
+
+```bash
+npm install -g pnpm
+```
+
+## Clone the Repository
 
 ```bash
 git clone <repository-url>
-cd mono-tradeticker
+cd <repository-directory>
 ```
 
-Install dependencies:
+## Install Dependencies
+
+From the repository root:
 
 ```bash
 pnpm install
 ```
 
-Create the root `.env`.
+---
 
-Build and start Docker:
+# Environment Variables
+
+Create the required environment files based on the provided `.env.example` files.
+
+The backend requires a PostgreSQL connection and authentication configuration.
+
+Example:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tradeticker
+
+JWT_SECRET=your-development-secret
+JWT_REFRESH_SECRET=your-development-refresh-secret
+```
+
+Use appropriate secrets outside local development.
+
+---
+
+# Database Setup
+
+Start PostgreSQL using Docker Compose:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
-Apply migrations:
+Run Prisma migrations:
 
 ```bash
-docker compose exec backend \
-  pnpm exec prisma migrate dev
+pnpm --filter backend prisma migrate dev
 ```
 
-Generate Prisma client:
+Generate the Prisma client if required:
 
 ```bash
-docker compose exec backend \
-  pnpm exec prisma generate
+pnpm --filter backend prisma generate
 ```
 
-Seed the database:
+If the project includes seed data:
 
 ```bash
-docker compose exec backend \
-  pnpm exec prisma db seed
-```
-
-Verify the backend:
-
-```bash
-curl http://localhost:3000/health
-```
-
-Open the frontend:
-
-```text
-http://localhost:5173
-```
-
-Optional: open Prisma Studio:
-
-```bash
-docker compose exec backend \
-  pnpm exec prisma studio --port 5555 --browser none
-```
-
-Then visit:
-
-```text
-http://localhost:5555
+pnpm --filter backend db:seed
 ```
 
 ---
 
-# Docker Build Troubleshooting
+# Running the Application
 
-If the Docker build takes an unusually long time while running `pnpm install`, especially while downloading packages from `registry.npmjs.org`, the issue may be caused by network or ISP routing rather than the application.
+## Development
 
-Try rebuilding:
-
-```bash
-docker compose build
-```
-
-or:
+From the repository root, run the configured development command:
 
 ```bash
-docker compose up --build
+pnpm dev
 ```
 
-If package downloads continue to time out:
+Alternatively, the applications can be started separately.
 
-- Restart Docker Desktop or OrbStack.
-- Try a mobile hotspot temporarily.
-- Change DNS to Cloudflare:
-  - `1.1.1.1`
-  - `1.0.0.1`
+Backend:
 
-- Or Google:
-  - `8.8.8.8`
-  - `8.8.4.4`
+```bash
+pnpm --filter backend dev
+```
 
-- Verify that `https://registry.npmjs.org` is reachable.
+Frontend:
 
-Once the initial build succeeds, Docker and pnpm should reuse cached dependencies for subsequent builds.
+```bash
+pnpm --filter frontend dev
+```
 
----
-
-# Default Ports
-
-| Service       | Port |
-| ------------- | ---: |
-| Frontend      | 5173 |
-| Backend       | 3000 |
-| Prisma Studio | 5555 |
-| PostgreSQL    | 5432 |
-
----
-
-# Architecture
+By default, the applications run on:
 
 ```text
-              +--------------------------+
-              |        React App         |
-              |                          |
-              | React Query              |
-              | AG Grid                  |
-              | shadcn/ui                |
-              | Tailwind CSS             |
-              +------------+-------------+
-                           |
-                    REST + WebSocket
-                           |
-              +------------v-------------+
-              |       Fastify API        |
-              |                          |
-              | Controllers              |
-              | Services                 |
-              | Repositories             |
-              | WebSocket Publishers     |
-              +------------+-------------+
-                           |
-                        Prisma
-                           |
-              +------------v-------------+
-              |       PostgreSQL         |
-              |                          |
-              | Users                    |
-              | Trades                   |
-              | Trade History            |
-              +--------------------------+
-
-              Backend Memory
-                    |
-                    |
-             Simulated Stock
-                 Prices
-                    |
-                    v
-          MARKET_PRICE_UPDATED
-                    |
-                    v
-               WebSocket
+Frontend: http://localhost:5173
+Backend:  http://localhost:3000
 ```
 
+PostgreSQL runs on:
+
+```text
+localhost:5432
 ```
 
+---
+
+# API
+
+The main trade endpoints include:
+
+```text
+GET    /api/trades
+POST   /api/trades
+PATCH  /api/trades/:id
+
+POST   /api/trades/:id/cancel
+POST   /api/trades/:id/close
+
+GET    /api/trades/summary
+GET    /api/trades/symbols
 ```
+
+Trade history and authentication endpoints are also exposed through their respective API routes.
+
+A Postman collection is included with the project for manually exercising the API.
+
+---
+
+# Testing
+
+## Backend Tests
+
+Backend unit tests use Vitest.
+
+Tests are located under:
+
+```text
+apps/backend/src/tests/
+```
+
+Current unit-test coverage focuses on the application's core custom business logic:
+
+```text
+src/tests/
+└── unit/
+    ├── trade_services/
+    │   ├── get_dashboard_service.test.ts
+    │   └── get_aggregated_pnl_service.test.ts
+    │
+    └── websocket/
+        └── websocket.test.ts
+```
+
+### Run All Backend Tests
+
+From `apps/backend`:
+
+```bash
+pnpm test
+```
+
+Or from the monorepo root:
+
+```bash
+pnpm --filter backend test
+```
+
+### Watch Mode
+
+```bash
+pnpm --filter backend test:watch
+```
+
+### Run Unit Tests Only
+
+```bash
+pnpm --filter backend vitest run src/tests/unit
+```
+
+### What Is Tested
+
+`GetDashboardService` verifies:
+
+- BUY unrealized P&L
+- SELL unrealized P&L
+- Profit and loss scenarios
+- Total market value
+- Trade status counts
+- Missing market-price handling
+- Empty active-trade handling
+
+`ListTradesPerSymbol` verifies:
+
+- Aggregation by symbol
+- Mixed BUY/SELL positions
+- Net quantity
+- Negative net quantity
+- Aggregate market value
+- Aggregate unrealized P&L
+- Multiple symbols
+- Missing market-price handling
+
+WebSocket unit tests verify:
+
+- Trader-specific broadcasting
+- Global broadcasting
+- Multiple connections for one trader
+- Client removal
+- Closed/inactive socket handling
+
+---
+
+# Assumptions
+
+## Simulated Market Data
+
+The application assumes that simulated market prices are sufficient for demonstrating real-time trading behavior.
+
+The system is not connected to an exchange or production market-data provider.
+
+---
+
+## Trade Execution
+
+Creating a trade represents an immediately executed trade.
+
+The application does not currently model:
+
+- Pending orders
+- Order books
+- Partial fills
+- Exchange execution
+- Bid/ask spread
+- Slippage
+- Brokerage fees
+
+The focus is trade management and real-time position monitoring rather than exchange matching.
+
+---
+
+## SELL Trades
+
+SELL trades are treated as short positions when they exceed BUY quantity.
+
+Therefore, negative net quantity is valid.
+
+```text
+BUY  5
+SELL 10
+
+Net Quantity = -5
+```
+
+---
+
+## Unrealized P&L
+
+Unrealized P&L is calculated only for active trades using the current simulated market price.
+
+Closed and cancelled trades do not contribute to current unrealized P&L.
+
+---
+
+## Market Value
+
+Market value is based on the current market price multiplied by the quantity of the relevant active trades.
+
+The aggregate view represents the combined market exposure of those trades.
+
+---
+
+## Authentication
+
+The application assumes a browser-based client where HttpOnly cookies can be used for authentication.
+
+---
+
+# Trade-offs
+
+## Simulated Prices vs Real Market Data
+
+A simulated provider was chosen instead of a third-party market-data service.
+
+### Benefit
+
+- No external API dependency
+- No API keys
+- Deterministic application setup
+- Easy demonstration of WebSocket behavior
+
+### Trade-off
+
+The prices do not represent actual market conditions.
+
+---
+
+## Native WebSockets vs Socket.IO
+
+Native WebSockets reduce dependencies and are sufficient for the current event model.
+
+### Benefit
+
+- Smaller abstraction layer
+- Direct control over connections and events
+- No additional client protocol dependency
+
+### Trade-off
+
+Features such as automatic reconnection strategies, rooms, acknowledgements, and fallback transports must be implemented manually if they become necessary.
+
+---
+
+## React Query Cache Updates vs Refetching
+
+Market-price WebSocket events update React Query directly.
+
+### Benefit
+
+This avoids performing an HTTP request for every market-price movement.
+
+### Trade-off
+
+The frontend must correctly maintain synchronization between incoming WebSocket events and cached server data.
+
+Trade lifecycle operations therefore still favor query invalidation where authoritative server state is more important than avoiding an occasional refetch.
+
+---
+
+## In-Memory WebSocket Connections
+
+Connected WebSocket clients are currently managed by the backend process.
+
+### Benefit
+
+The implementation is simple and appropriate for a single-instance demonstration application.
+
+### Trade-off
+
+The connection registry is local to one backend instance.
+
+A horizontally scaled production deployment would require a shared event-distribution mechanism such as Redis Pub/Sub or another message broker so events can reach clients connected to different backend instances.
+
+---
+
+## In-Memory Market Prices
+
+Current simulated prices are maintained by the application rather than persisted to the database.
+
+### Benefit
+
+Frequent market updates do not create unnecessary database writes.
+
+### Trade-off
+
+Market prices reset when the backend restarts.
+
+For this application, PostgreSQL remains the source of truth for trade data, while market prices are intentionally transient.
+
+---
+
+## Real-Time Derived Values
+
+Dashboard and aggregate P&L values are recalculated as market prices change.
+
+### Benefit
+
+The frontend receives ready-to-display calculated information and remains synchronized with market movements.
+
+### Trade-off
+
+Recalculating positions for every price movement would become increasingly expensive with a very large number of users and positions.
+
+A production-scale implementation could use incremental position calculations, caching, streaming infrastructure, or precomputed position state.
+
+---
+
+## Test Coverage
+
+Automated testing currently prioritizes the highest-value custom business logic, particularly P&L calculations, aggregation, and WebSocket routing.
+
+### Benefit
+
+The most error-prone financial and real-time logic receives automated verification first.
+
+### Trade-off
+
+The current test suite is not intended to provide exhaustive end-to-end coverage of every UI and API path.
+
+Additional integration and browser automation tests would be appropriate before production deployment.
+
+---
+
+# Potential Improvements
+
+Given additional development time, the application could be extended with:
+
+- Real market-data provider integration
+- Redis-backed WebSocket event distribution
+- Horizontal backend scaling
+- Additional backend integration tests
+- Frontend component tests
+- Playwright end-to-end tests
+- Realized P&L for closed positions
+- More advanced portfolio analytics
+- Improved WebSocket reconnection and recovery
+- Rate limiting
+- Structured observability and metrics
+- Containerized production deployment
+- CI/CD pipeline
+
+---
+
+# AI-Assisted Development
+
+AI-assisted development was used during implementation for code generation, debugging, architectural discussions, testing guidance, and documentation.
+
+AI-generated suggestions were reviewed and tested before being incorporated into the project. Architectural direction, technology selection, feature requirements, and final implementation decisions remained developer-directed.
+
+A separate AI Usage Report and Prompt Log are included with the submission with additional details about how AI was used during development.
+
+---
+
+# License
+
+This project was developed as a technical assessment and demonstration application.

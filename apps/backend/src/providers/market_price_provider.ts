@@ -1,6 +1,8 @@
 import { nyse_100_stocks } from '../../prisma/seed-data/stocks.js';
 
 import { publish_market_price_updated } from '../publishers/market_price_publisher.js';
+import { publish_aggregated_pnl } from './aggregated_pnl_provider.js';
+import { publish_market_price_summaries } from './market_price_summary_provider.js';
 
 export interface MarketPrice {
   symbol: string;
@@ -55,6 +57,9 @@ function update_market_prices(): void {
       updated_at: new Date(),
     });
   }
+
+  publish_market_price_summaries();
+  publish_aggregated_pnl();
 }
 
 export function start_market_price_provider(): void {

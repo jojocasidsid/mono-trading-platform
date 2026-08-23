@@ -30,6 +30,22 @@ export default class TradeHistoryRepository extends ApplicationRepository {
         },
       },
 
+      include: {
+        trade: {
+          select: {
+            id: true,
+            symbol: true,
+            side: true,
+            quantity: true,
+            price: true,
+            book: true,
+            counterparty: true,
+            status: true,
+            trade_timestamp: true,
+          },
+        },
+      },
+
       skip: input.skip,
       take: input.take,
 

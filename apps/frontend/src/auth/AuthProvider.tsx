@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { getMe } from '@/api/authApi';
+import { getMe, logout } from '@/api/authApi';
 
 import type { User } from '@/types/auth';
 
@@ -15,8 +15,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+
+      setUser(null);
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
   }, []);
 
   useEffect(() => {
@@ -53,9 +59,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       isAuthenticated: user !== null,
       isLoading,
       setUser,
-      logout,
+      logout: handleLogout,
     }),
-    [user, isLoading, logout]
+    [user, isLoading, handleLogout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

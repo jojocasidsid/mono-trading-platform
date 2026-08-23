@@ -27,4 +27,16 @@ export async function trade_routes(app: FastifyInstance): Promise<void> {
   app.post<{
     Params: TradeParams;
   }>('/:id/cancel', trade_controller.cancel);
+
+  app.post<{
+    Params: TradeParams;
+  }>('/:id/close', trade_controller.close);
+
+  app.get(
+    '/symbols',
+    {
+      preHandler: [authenticate],
+    },
+    trade_controller.listTradesPerSymbol
+  );
 }

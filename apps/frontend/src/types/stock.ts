@@ -7,4 +7,6 @@ export interface StockPrice {
   symbol: string;
   name: string;
   price: number;
+  previous_price?: number;
+  updated_at?: string;
 }

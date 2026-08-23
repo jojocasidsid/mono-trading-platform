@@ -2,48 +2,68 @@ import type { FastifyInstance } from 'fastify';
 
 import { add_websocket_client, remove_websocket_client } from '../shared/websocket/websocket.js';
 
-interface WebSocketQuery {
-  token?: string;
-}
-
-interface AccessTokenPayload {
+interface JwtUser {
   user_id: string;
-  role: 'TRADER' | 'ADMIN';
+  role: string;
+  token_type: 'access' | 'refresh';
 }
 
 export async function websocket_routes(app: FastifyInstance): Promise<void> {
-  app.get<{
-    Querystring: WebSocketQuery;
-  }>(
-    '/trades',
+  app.get(
+    '/',
     {
       websocket: true,
     },
-    (socket, request) => {
-      const token = request.query.token;
-
-      if (!token) {
-        socket.close(1008, 'Authentication required');
-
-        return;
-      }
-
+    async (socket, request) => {
       try {
-        const payload = app.jwt.verify<AccessTokenPayload>(token);
+        await request.jwtVerify();
 
-        if (!payload.user_id) {
-          socket.close(1008, 'Invalid token');
+        const user = request.user as JwtUser;
+
+        if (user.token_type !== 'access') {
+          socket.close(1008, 'Unauthorized');
 
           return;
         }
 
-        add_websocket_client(socket, payload.user_id);
+        add_websocket_client(socket, user.user_id);
+
+        app.log.info(
+          {
+            trader_id: user.user_id,
+          },
+          'WebSocket client connected'
+        );
 
         socket.on('close', () => {
           remove_websocket_client(socket);
+
+          app.log.info(
+            {
+              trader_id: user.user_id,
+            },
+            'WebSocket client disconnected'
+          );
         });
-      } catch {
-        socket.close(1008, 'Invalid or expired token');
+
+        socket.on('error', error => {
+          app.log.error(
+            {
+              err: error,
+              trader_id: user.user_id,
+            },
+            'WebSocket client error'
+          );
+        });
+      } catch (error) {
+        app.log.warn(
+          {
+            err: error,
+          },
+          'WebSocket authentication failed'
+        );
+
+        socket.close(1008, 'Unauthorized');
       }
     }
   );

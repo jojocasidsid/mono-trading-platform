@@ -74,4 +74,6 @@ export const update_trade_schema = z
 
 export type CreateTradeRequest = z.infer<typeof create_trade_schema>;
 
-export type UpdateTradeRequest = z.infer<typeof update_trade_schema>;
+export type UpdateTradeFormInput = z.input<typeof update_trade_schema>;
+
+export type UpdateTradeRequest = z.output<typeof update_trade_schema>;

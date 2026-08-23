@@ -41,6 +41,10 @@ export function broadcast_to_trader<T>(trader_id: string, event: WebSocketEvent,
   }
 }
 
+export function get_connected_trader_ids(): string[] {
+  return [...new Set(Array.from(clients).map(client => client.trader_id))];
+}
+
 export function broadcast_to_all<T>(event: WebSocketEvent, data: T): void {
   const message: WebSocketMessage<T> = {
     event,

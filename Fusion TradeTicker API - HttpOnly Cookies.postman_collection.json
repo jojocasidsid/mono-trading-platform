@@ -1,0 +1,551 @@
+{
+  "info": {
+    "_postman_id": "82d605ac-0dc9-418b-8c76-9d1285ef5e5a",
+    "name": "Fusion TradeTicker API - HttpOnly Cookies",
+    "description": "HttpOnly-cookie authentication collection. Login stores access_token and refresh_token in Postman's cookie jar via Set-Cookie headers. Protected requests use those cookies automatically; no Bearer token variables are required.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20610249"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newtrader@fusion.local\",\n  \"username\": \"NEWTRADER\",\n  \"name\": \"New Trader\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeds', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "pm.test('JWTs are not exposed in response JSON', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.access_token).to.eql(undefined);",
+                  "  pm.expect(json.refresh_token).to.eql(undefined);",
+                  "});",
+                  "pm.test('Authentication cookies are set', function () {",
+                  "  const headers = pm.response.headers.all().filter(h => h.key.toLowerCase() === 'set-cookie');",
+                  "  pm.expect(headers.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jsmith@fusion.local\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Sets HttpOnly access_token and refresh_token cookies."
+          },
+          "response": []
+        },
+        {
+          "name": "Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Uses the access_token HttpOnly cookie automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Reads refresh_token from HttpOnly cookie; no token in request body."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears access_token and refresh_token cookies."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stocks",
+      "item": [
+        {
+          "name": "List Stocks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/stocks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "stocks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Stock Prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/stocks/prices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "stocks",
+                "prices"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trades",
+      "item": [
+        {
+          "name": "List Trades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api?page={{page}}&per_page={{per_page}}&symbol={{symbol}}&side={{side}}&status={{status}}&book={{book}}&counterparty={{counterparty}}&sort_by={{sort_by}}&sort_order={{sort_order}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "{{per_page}}"
+                },
+                {
+                  "key": "symbol",
+                  "value": "{{symbol}}"
+                },
+                {
+                  "key": "side",
+                  "value": "{{side}}"
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}"
+                },
+                {
+                  "key": "book",
+                  "value": "{{book}}"
+                },
+                {
+                  "key": "counterparty",
+                  "value": "{{counterparty}}"
+                },
+                {
+                  "key": "sort_by",
+                  "value": "{{sort_by}}"
+                },
+                {
+                  "key": "sort_order",
+                  "value": "{{sort_order}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trade Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trades/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Trade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trade created', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "const trade = json.data || json;",
+                  "if (trade && trade.id) pm.collectionVariables.set('trade_id', trade.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"AAPL\",\n  \"side\": \"BUY\",\n  \"quantity\": 100,\n  \"price\": 225.5,\n  \"book\": \"EQUITIES_US\",\n  \"counterparty\": \"Goldman Sachs\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trades",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Trade",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 150,\n  \"price\": 227.25,\n  \"book\": \"TECH_GROWTH\",\n  \"counterparty\": \"Morgan Stanley\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trades/{{trade_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades",
+                "{{trade_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Trade",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trades/{{trade_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades",
+                "{{trade_id}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Close Trade",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trades/{{trade_id}}/close",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades",
+                "{{trade_id}}",
+                "close"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Aggregated Trades per Symbol",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trades/symbols",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trades",
+                "symbols"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Trade History",
+      "item": [
+        {
+          "name": "List Trade History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trade-history?page={{page}}&per_page={{per_page}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "trade-history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "per_page",
+                  "value": "{{per_page}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "WebSocket",
+      "item": [],
+      "description": "Create a WebSocket request in Postman using {{ws_url}} after Login. Authentication now uses the access_token cookie during the WebSocket handshake, not a token query parameter. Expected events: TRADE_CREATED, TRADE_UPDATED, TRADE_CANCELLED, TRADE_CLOSED, MARKET_PRICE_UPDATED."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "ws_url",
+      "value": "ws://localhost:3000/ws"
+    },
+    {
+      "key": "trade_id",
+      "value": ""
+    },
+    {
+      "key": "page",
+      "value": "1"
+    },
+    {
+      "key": "per_page",
+      "value": "20"
+    },
+    {
+      "key": "symbol",
+      "value": "AAPL"
+    },
+    {
+      "key": "side",
+      "value": "BUY"
+    },
+    {
+      "key": "status",
+      "value": "ACTIVE"
+    },
+    {
+      "key": "book",
+      "value": "EQUITIES_US"
+    },
+    {
+      "key": "counterparty",
+      "value": "Goldman Sachs"
+    },
+    {
+      "key": "sort_by",
+      "value": "trade_timestamp"
+    },
+    {
+      "key": "sort_order",
+      "value": "desc"
+    }
+  ]
+}

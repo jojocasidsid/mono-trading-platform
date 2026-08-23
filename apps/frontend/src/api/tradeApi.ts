@@ -1,6 +1,12 @@
 import type { CreateTradeRequest, UpdateTradeRequest } from '@fusion/shared';
 
-import type { PaginatedTrades, Trade, TradeListParams, TradeSummary } from '@/types/trade';
+import type {
+  AggregatedPnl,
+  PaginatedTrades,
+  Trade,
+  TradeListParams,
+  TradeSummary,
+} from '@/types/trade';
 
 import { apiClient } from './apiClient';
 
@@ -26,6 +32,14 @@ export async function getTradeSummary(): Promise<TradeSummary> {
   const response = await apiClient.get<{
     data: TradeSummary;
   }>('/api/trades/summary');
+
+  return response.data.data;
+}
+
+export async function getAggregatedPnl(): Promise<AggregatedPnl[]> {
+  const response = await apiClient.get<{
+    data: AggregatedPnl[];
+  }>('/api/trades/symbols');
 
   return response.data.data;
 }

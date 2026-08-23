@@ -11,6 +11,8 @@ export const queryKeys = {
     list: (params: TradeListParams) => ['trades', 'list', params] as const,
 
     summary: () => ['trades', 'summary'] as const,
+
+    symbols: () => ['trades', 'symbols'] as const,
   },
 
   tradeHistory: {

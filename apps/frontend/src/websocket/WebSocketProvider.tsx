@@ -44,10 +44,12 @@ export default function WebSocketProvider({ children }: WebSocketProviderProps) 
     };
 
     socket.onerror = error => {
-      console.error('WebSocket error:', error);
+      console.error('[WS] error:', error);
     };
 
-    socket.onclose = () => {
+    socket.onclose = event => {
+      console.log('[WS] closed:', event.code, event.reason);
+
       setStatus('DISCONNECTED');
     };
 

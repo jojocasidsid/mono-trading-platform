@@ -13,9 +13,12 @@ import CreateTradeService from '../services/trade_services/create_trade_service.
 import ListTradesService from '../services/trade_services/list_trades_service.js';
 import UpdateTradeService from '../services/trade_services/update_trade_service.js';
 import CancelTradeService from '../services/trade_services/cancel_trade_service.js';
+import CloseTradeService from '../services/trade_services/close_trade_service.js';
 
 import type { ListTradesModel } from '../models/trade_model.js';
+
 import GetDashboardService from '../services/trade_services/get_dashboard_service.js';
+import ListTradesPerSymbol from '../services/trade_services/list_trades_per_symbol.js';
 
 export interface TradeParams {
   id: string;
@@ -93,6 +96,23 @@ export class TradeController extends ApplicationController {
     });
   };
 
+  close = async (
+    request: FastifyRequest<{
+      Params: TradeParams;
+    }>,
+    reply: FastifyReply
+  ) => {
+    const trader_id = this.get_trader_id(request);
+
+    const service = new CloseTradeService();
+
+    const trade = await service.execute(request.params.id, trader_id);
+
+    return reply.send({
+      data: trade,
+    });
+  };
+
   summary = async (request: FastifyRequest, reply: FastifyReply) => {
     const trader_id = this.get_trader_id(request);
 
@@ -102,6 +122,18 @@ export class TradeController extends ApplicationController {
 
     return reply.send({
       data: summary,
+    });
+  };
+
+  listTradesPerSymbol = async (request: FastifyRequest, reply: FastifyReply) => {
+    const trader_id = this.get_trader_id(request);
+
+    const service = new ListTradesPerSymbol();
+
+    const pnl = await service.execute(trader_id);
+
+    return reply.send({
+      data: pnl,
     });
   };
 }

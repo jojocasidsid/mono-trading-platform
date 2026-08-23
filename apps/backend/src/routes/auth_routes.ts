@@ -32,4 +32,12 @@ export async function auth_routes(app: FastifyInstance): Promise<void> {
     },
     auth_controller.me
   );
+
+  app.post(
+    '/logout',
+    {
+      preHandler: [authenticate],
+    },
+    auth_controller.logout
+  );
 }

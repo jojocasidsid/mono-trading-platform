@@ -1,11 +1,13 @@
+import type { Trade } from './trade';
+
 export type TradeHistoryAction = 'CREATED' | 'UPDATED' | 'CANCELLED' | 'CLOSED';
 
 export interface TradeHistory {
   id: string;
-  tradeId: string;
-  traderId: string;
+  trade_id: string;
+  trade: Trade;
   action: TradeHistoryAction;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface TradeHistoryListParams {
@@ -16,10 +18,10 @@ export interface TradeHistoryListParams {
 export interface PaginatedTradeHistory {
   data: TradeHistory[];
 
-  meta: {
+  pagination: {
     page: number;
-    perPage: number;
+    per_page: number;
     total: number;
-    totalPages: number;
+    total_pages: number;
   };
 }

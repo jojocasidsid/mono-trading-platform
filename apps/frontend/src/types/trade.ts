@@ -30,20 +30,29 @@ export interface TradeListParams {
 }
 
 export interface TradeSummary {
-  totalUnrealizedPnl: number;
-  totalMarketValue: number;
-  activeTrades: number;
-  cancelledTrades: number;
-  closedTrades: number;
+  total_unrealized_pnl: number;
+  total_market_value: number;
+  active_trades: number;
+  cancelled_trades: number;
+  closed_trades: number;
 }
 
 export interface PaginatedTrades {
   data: Trade[];
 
-  meta: {
+  pagination: {
     page: number;
-    perPage: number;
+    per_page: number;
     total: number;
-    totalPages: number;
+    total_pages: number;
   };
+}
+
+export interface AggregatedPnl {
+  symbol: string;
+  market_price: number;
+  net_quantity: number;
+  active_trades: number;
+  total_market_value: number;
+  total_unrealized_pnl: number;
 }
