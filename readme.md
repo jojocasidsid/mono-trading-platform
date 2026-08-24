@@ -387,27 +387,6 @@ From the repository root:
 pnpm install
 ```
 
----
-
-# Environment Variables
-
-Create the required environment files based on the provided `.env.example` files.
-
-The backend requires a PostgreSQL connection and authentication configuration.
-
-Example:
-
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tradeticker
-
-JWT_SECRET=your-development-secret
-JWT_REFRESH_SECRET=your-development-refresh-secret
-```
-
-Use appropriate secrets outside local development.
-
----
-
 # Database Setup
 
 Start PostgreSQL using Docker Compose:
