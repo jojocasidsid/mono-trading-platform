@@ -240,6 +240,11 @@ export default function TradesGrid({
       },
 
       {
+        field: 'counterparty',
+        headerName: 'Counterparty',
+      },
+
+      {
         headerName: 'Actions',
         colId: 'actions',
 

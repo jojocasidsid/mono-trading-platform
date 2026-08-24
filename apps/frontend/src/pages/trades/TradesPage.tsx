@@ -128,7 +128,6 @@ export default function TradesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Trades</h1>
@@ -143,10 +142,8 @@ export default function TradesPage() {
         </div>
       </div>
 
-      {/* Summary */}
       <TradeSummary data={summary} isLoading={isSummaryLoading} />
 
-      {/* Filters */}
       <TradeFilters
         filters={filters}
         onSymbolChange={handleSymbolChange}
@@ -157,7 +154,6 @@ export default function TradesPage() {
         onReset={handleResetFilters}
       />
 
-      {/* Trades */}
       <TradesGrid
         data={trades}
         stockPrices={stockPrices}
