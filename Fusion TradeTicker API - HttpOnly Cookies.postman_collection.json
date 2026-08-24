@@ -17,12 +17,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "health"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["health"]
             }
           },
           "response": []
@@ -54,14 +50,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/signup",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "signup"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup"]
             }
           },
           "response": []
@@ -108,14 +98,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
             },
             "description": "Sets HttpOnly access_token and refresh_token cookies."
           },
@@ -128,14 +112,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth/me",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "me"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
             },
             "description": "Uses the access_token HttpOnly cookie automatically."
           },
@@ -163,14 +141,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/refresh",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "refresh"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
             },
             "description": "Reads refresh_token from HttpOnly cookie; no token in request body."
           },
@@ -183,14 +155,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth/logout",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
             },
             "description": "Clears access_token and refresh_token cookies."
           },
@@ -208,13 +174,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/stocks",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "stocks"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "stocks"]
             }
           },
           "response": []
@@ -226,14 +187,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/stocks/prices",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "stocks",
-                "prices"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "stocks", "prices"]
             }
           },
           "response": []
@@ -249,21 +204,19 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api?page={{page}}&per_page={{per_page}}&symbol={{symbol}}&side={{side}}&status={{status}}&book={{book}}&counterparty={{counterparty}}&sort_by={{sort_by}}&sort_order={{sort_order}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api"
-              ],
+              "raw": "{{base_url}}/api/trades?symbol={{symbol}}&sort_order={{sort_order}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades"],
               "query": [
                 {
                   "key": "page",
-                  "value": "{{page}}"
+                  "value": "{{page}}",
+                  "disabled": true
                 },
                 {
                   "key": "per_page",
-                  "value": "{{per_page}}"
+                  "value": "{{per_page}}",
+                  "disabled": true
                 },
                 {
                   "key": "symbol",
@@ -271,23 +224,28 @@
                 },
                 {
                   "key": "side",
-                  "value": "{{side}}"
+                  "value": "{{side}}",
+                  "disabled": true
                 },
                 {
                   "key": "status",
-                  "value": "{{status}}"
+                  "value": "{{status}}",
+                  "disabled": true
                 },
                 {
                   "key": "book",
-                  "value": "{{book}}"
+                  "value": "{{book}}",
+                  "disabled": true
                 },
                 {
                   "key": "counterparty",
-                  "value": "{{counterparty}}"
+                  "value": "{{counterparty}}",
+                  "disabled": true
                 },
                 {
                   "key": "sort_by",
-                  "value": "{{sort_by}}"
+                  "value": "{{sort_by}}",
+                  "disabled": true
                 },
                 {
                   "key": "sort_order",
@@ -305,14 +263,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/trades/summary",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades",
-                "summary"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades", "summary"]
             }
           },
           "response": []
@@ -353,13 +305,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/trades",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades"]
             }
           },
           "response": []
@@ -386,14 +333,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/trades/{{trade_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades",
-                "{{trade_id}}"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades", "{{trade_id}}"]
             }
           },
           "response": []
@@ -405,15 +346,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/trades/{{trade_id}}/cancel",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades",
-                "{{trade_id}}",
-                "cancel"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades", "{{trade_id}}", "cancel"]
             }
           },
           "response": []
@@ -425,15 +359,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/trades/{{trade_id}}/close",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades",
-                "{{trade_id}}",
-                "close"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades", "{{trade_id}}", "close"]
             }
           },
           "response": []
@@ -445,14 +372,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/trades/symbols",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trades",
-                "symbols"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "trades", "symbols"]
             }
           },
           "response": []
@@ -469,13 +390,8 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/trade-history?page={{page}}&per_page={{per_page}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "trade-history"
-              ],
+              "host": ["{{base_url}}"],
+              "path": ["api", "trade-history"],
               "query": [
                 {
                   "key": "page",
